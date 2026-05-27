@@ -1,20 +1,38 @@
 # VidTutor 🎓
+> A voice-first conversational tutor for YouTube videos — in any Indian language.
 
-A voice-first conversational tutor that lets anyone ask questions about a YouTube video — in any Indian language. Answers are grounded strictly in the video transcript; the bot will never hallucinate beyond it.
+VidTutor lets you ask questions about any YouTube video by text or voice, and get answers spoken back in your language. Every answer is grounded strictly in the video transcript — no hallucination, no outside knowledge.
+
+---
 
 ## What It Does
 
-- Ask questions about any YouTube video by text or voice
-- Answers only from the video transcript — no hallucination
+- Ask questions about any YouTube video — by typing or speaking
+- Answers only from the video transcript, never from outside knowledge
 - Speaks back in the same language you speak in
 - Auto-detects your language (Hindi, Marathi, Kannada, Tamil, and more)
 - Full voice mode — hands-free, auto-loops, no typing needed
-- Switch between videos or paste any YouTube URL on the fly
-- Conversation history persists across voice and text modes
+- Switch between preloaded videos or paste any YouTube URL
+- Conversation history persists across voice and text sessions
+
+---
 
 ## Why It Matters
 
-Millions of high-quality English educational videos exist on YouTube. Language is the wall. A student in rural Maharashtra can ask a question in Marathi and hear the answer spoken back — without needing to understand English. VidTutor tears that wall down.
+India has 500M+ smartphone users but only ~10% are comfortable in English. 
+Most high-quality educational content — lectures, explainers, tutorials — exists only in English. 
+This creates a knowledge gap that affects students, farmers, healthcare workers, and small business owners alike.
+
+VidTutor bridges that gap. Load any educational YouTube video, ask questions in your language, 
+and get answers spoken back to you — all grounded strictly in the video content.
+
+A Class 10 student in Bhopal can understand 3Blue1Brown's neural network explanation in Hindi.
+A farmer in Gujarat can ask about crop disease from an agri-tutorial in Gujarati.
+A first-generation college student in Chennai can study from MIT OpenCourseWare in Tamil.
+
+No language barrier. No hallucination. Just learning.
+
+---
 
 ## Stack
 
@@ -23,82 +41,76 @@ Millions of high-quality English educational videos exist on YouTube. Language i
 | Backend | FastAPI + Uvicorn |
 | Transcript | `youtube-transcript-api` |
 | RAG | `sentence-transformers` + FAISS |
-| LLM | Sarvam-M (chat completion) |
-| Voice Input (STT) | Sarvam Saaras v3 |
-| Voice Output (TTS) | Sarvam Bulbul v3 |
-| Frontend | Vanilla HTML/CSS/JS |
+| LLM | Sarvam-M |
+| STT | Sarvam Saaras v3 |
+| TTS | Sarvam Bulbul v3 |
+| Frontend | Vanilla HTML / CSS / JS |
 
 100% Sarvam stack for all language and voice layers.
 
+---
+
 ## Setup
 
-### 1. Install dependencies
+### 1. Requirements
+- Python 3.10, 3.11, or 3.12 (recommended: 3.11)
+- Sarvam API key — get free at [dashboard.sarvam.ai](https://dashboard.sarvam.ai)
+
+### 2. Install
 ```bash
-pip install -r requirements.txt --upgrade
+pip install -r requirements.txt
 ```
 
-### 2. Set API keys
+### 3. Configure
 ```bash
 cp .env.example .env
-# Edit .env and add your Sarvam API key
+# Add your Sarvam API key to .env
 ```
-Get your Sarvam API key at: https://dashboard.sarvam.ai
 
-### 3. Run
+### 4. Run
 ```bash
 uvicorn main:app --reload
 ```
 Open http://localhost:8000
 
+---
+
 ## How It Works
 
-1. On startup, fetches the default YouTube transcript and builds a FAISS vector index (cached to disk after first run)
-2. User asks a question via text or voice
+1. On startup, fetches the YouTube transcript and builds a FAISS vector index
+2. User asks a question by text or voice
 3. Voice input → Sarvam Saaras v3 transcribes + detects language automatically
-4. Top-4 relevant transcript chunks retrieved via cosine similarity (FAISS)
-5. Sarvam-M answers using only those chunks — system prompt enforces transcript-only answers
-6. Answer displayed in chat + optionally spoken via Sarvam Bulbul v3 in detected language
+4. Top-4 relevant transcript chunks retrieved via cosine similarity
+5. Sarvam-M answers using only those chunks
+6. Answer displayed in chat + spoken via Sarvam Bulbul v3 in detected language
 7. Mic auto-activates for next turn in voice mode — fully hands-free
+
+---
 
 ## Features
 
 ### Text Mode
 - Type questions, get grounded answers
-- Toggle "Speak responses" for TTS output
-- Select response language from dropdown
 - Voice input button with auto VAD (stops on silence)
+- Toggle TTS to hear responses spoken aloud
+- Select response language from dropdown
 
 ### Voice Mode
 - Full screen immersive interface
-- Auto-detects language from your speech
-- Responds in the same language you spoke
-- Loops automatically — completely hands-free
-- All voice conversations appear in text chat after session
+- Auto-detects your language from speech
+- Responds and speaks back in same language
+- Interrupt button to stop speaking and ask again
+- All voice conversations visible in text chat after session
 
 ### Video Selection
 - 3 preloaded videos (Neural Networks, Transformers, What is Sarvam AI?)
-- Paste any YouTube URL to load any video on the fly
-- Index cached to disk — instant on second load
+- Paste any YouTube URL to load any video instantly
+- FAISS index cached to disk — instant on second load
 
-## API Endpoints
-
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/` | Serves the frontend |
-| POST | `/chat` | RAG + LLM endpoint |
-| POST | `/stt` | Sarvam speech-to-text |
-| POST | `/tts` | Sarvam text-to-speech |
-| POST | `/load` | Load a new video by ID |
-| GET | `/videos` | List available videos |
-| GET | `/status` | Index health check |
+---
 
 ## Preloaded Videos
 
 - [But what is a neural network?](https://www.youtube.com/watch?v=aircAruvnKk) — 3Blue1Brown
-- [Transformers, the tech behind LLMs](https://www.youtube.com/watch?v=wjZofJX0v4M) — 3Blue1Brown  
+- [Transformers, the tech behind LLMs](https://www.youtube.com/watch?v=wjZofJX0v4M) — 3Blue1Brown
 - [What is Sarvam AI?](https://www.youtube.com/watch?v=qswEBHoWZMM) — Sarvam
-
-## Requirements
-
-- Python 3.10, 3.11, or 3.12 (recommended: 3.11)
-- Sarvam API key
