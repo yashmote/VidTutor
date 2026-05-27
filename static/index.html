@@ -668,12 +668,14 @@
 
   async function startVoiceLoop() {
     if (!voiceLoop) return;
+    voiceAborted = false;
     await listenAndRespond();
     if (voiceLoop) setTimeout(() => startVoiceLoop(), 600);
   }
 
   async function listenAndRespond() {
     return new Promise(async (resolve) => {
+      voiceAborted = false;
       setVoiceState('listening', '🎙', 'LISTENING...');
       voiceTranscript.textContent = '';
       voiceAnswer.textContent     = '';
