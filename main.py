@@ -142,7 +142,7 @@ def ask_sarvam(question: str, context: str, language: str, history: list) -> str
             json={
                 "model": "sarvam-m",
                 "messages": messages,
-                "max_tokens": 500,
+                "max_tokens": 1500,
                 "temperature": 0.2,
             }
         )
