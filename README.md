@@ -19,12 +19,12 @@ VidTutor lets you ask questions about any YouTube video by text or voice, and ge
 
 ## Why It Matters
 
-India has 500M+ smartphone users but only ~10% are comfortable in English. 
-Most high-quality educational content — lectures, explainers, tutorials — exists only in English. 
+India has ~700M smartphone users but only ~10% are comfortable in English. 
+Most high-quality educational content like lectures, explainers, tutorials exists only in English. 
 This creates a knowledge gap that affects students, farmers, healthcare workers, and small business owners alike.
 
 VidTutor bridges that gap. Load any educational YouTube video, ask questions in your language, 
-and get answers spoken back to you — all grounded strictly in the video content.
+and get answers spoken back to you, all grounded strictly in the video content.
 
 A Class 10 student in Bhopal can understand 3Blue1Brown's neural network explanation in Hindi.
 A farmer in Gujarat can ask about crop disease from an agri-tutorial in Gujarati.
@@ -60,10 +60,16 @@ No language barrier. No hallucination. Just learning.
 ```bash
 pip install -r requirements.txt
 ```
+> ⚠️ This may take 2-3 minutes on first install — `sentence-transformers` and `faiss-cpu` are large packages.
+> 
+> **Python version matters:** Use Python 3.10, 3.11, or 3.12 only. Python 3.13+ will fail due to missing `faiss-cpu` wheels. If you hit numpy/faiss conflicts, try:
+> ```bash
+> pip install "numpy<2" --upgrade
+> pip install -r requirements.txt --force-reinstall
+> ```
 
 ### 3. Configure
 ```bash
-cp .env.example .env
 # Add your Sarvam API key to .env
 ```
 
@@ -71,6 +77,9 @@ cp .env.example .env
 ```bash
 uvicorn main:app --reload
 ```
+> ⏳ First run takes 30-60 seconds — downloads the embedding model (~90MB) and fetches YouTube transcripts.
+> Subsequent runs are instant as everything is cached to disk.
+
 Open http://localhost:8000
 
 ---
@@ -100,7 +109,7 @@ Open http://localhost:8000
 - Auto-detects your language from speech
 - Responds and speaks back in same language
 - Interrupt button to stop speaking and ask again
-- All voice conversations visible in text chat after session
+- **All voice conversations saved to text chat** — full transcript visible after session ends
 
 ### Video Selection
 - 3 preloaded videos (Neural Networks, Transformers, What is Sarvam AI?)
