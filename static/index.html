@@ -186,6 +186,77 @@
   transition: all 0.15s;
 }
 .interrupt-btn:hover { background: #2e1f00; }
+
+/* ── TOUR ── */
+.tour-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+  z-index: 200; pointer-events: none;
+}
+.tour-highlight {
+  position: fixed; z-index: 201;
+  border: 2px solid var(--accent);
+  border-radius: 10px;
+  box-shadow: 0 0 0 4px rgba(240,192,64,0.2);
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+.tour-tooltip {
+  position: fixed; z-index: 202;
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  padding: 16px 20px;
+  max-width: 280px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.tour-tooltip h4 {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.tour-tooltip p {
+  font-size: 0.85rem;
+  color: var(--text);
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+.tour-btns {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.tour-btn-skip {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+}
+.tour-btn-next {
+  background: var(--accent);
+  color: #000;
+  border: none;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+}
+.tour-counter {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
 </style>
 </head>
 <body>
@@ -799,6 +870,131 @@
   }
   interruptBtn.style.display = 'none';
 });
+
+// ── TOUR ──────────────────────────────────────────────────────────────────
+const TOUR_STEPS = [
+  {
+    target: '#video-select',
+    title: 'Choose a Video',
+    text: 'Pick from 3 preloaded videos — neural networks, transformers, or Sarvam AI.',
+    position: 'right'
+  },
+  {
+    target: '#lang-select',
+    title: 'Response Language',
+    text: 'Get answers in Hindi, Marathi, Tamil, or any of 9 Indian languages.',
+    position: 'right'
+  },
+  {
+    target: '#speak-toggle',
+    title: 'Speak Responses',
+    text: 'Toggle this to hear answers spoken aloud via Sarvam TTS.',
+    position: 'right'
+  },
+  {
+    target: '#url-input',
+    title: 'Load Any Video',
+    text: 'Paste any YouTube URL to load it as your knowledge source on the fly.',
+    position: 'right'
+  },
+  {
+    target: '#mic-btn',
+    title: 'Voice Input',
+    text: 'Click to ask by voice. Auto-stops when you stop speaking — no button needed.',
+    position: 'top'
+  },
+  {
+    target: '#enter-voice-btn',
+    title: 'Voice Mode',
+    text: 'Full hands-free conversation. Speaks back in your language. Auto-loops — just talk.',
+    position: 'bottom'
+  },
+];
+
+let tourStep     = 0;
+let tourOverlay  = null;
+let tourHighlight= null;
+let tourTooltip  = null;
+
+function startTour() {
+  tourStep = 0;
+  tourOverlay   = document.createElement('div');
+  tourOverlay.className = 'tour-overlay';
+  tourHighlight = document.createElement('div');
+  tourHighlight.className = 'tour-highlight';
+  tourTooltip   = document.createElement('div');
+  tourTooltip.className = 'tour-tooltip';
+  document.body.appendChild(tourOverlay);
+  document.body.appendChild(tourHighlight);
+  document.body.appendChild(tourTooltip);
+  showTourStep();
+}
+
+function showTourStep() {
+  const step = TOUR_STEPS[tourStep];
+  const el   = document.querySelector(step.target);
+  if (!el) { nextTourStep(); return; }
+
+  const rect = el.getBoundingClientRect();
+  const pad  = 6;
+
+  // position highlight
+  tourHighlight.style.top    = `${rect.top - pad}px`;
+  tourHighlight.style.left   = `${rect.left - pad}px`;
+  tourHighlight.style.width  = `${rect.width + pad * 2}px`;
+  tourHighlight.style.height = `${rect.height + pad * 2}px`;
+
+  // build tooltip
+  tourTooltip.innerHTML = `
+    <div class="tour-counter">${tourStep + 1} / ${TOUR_STEPS.length}</div>
+    <h4>${step.title}</h4>
+    <p>${step.text}</p>
+    <div class="tour-btns">
+      <button class="tour-btn-skip" onclick="endTour()">SKIP</button>
+      <button class="tour-btn-next" onclick="nextTourStep()">
+        ${tourStep === TOUR_STEPS.length - 1 ? 'DONE' : 'NEXT →'}
+      </button>
+    </div>
+  `;
+
+  // position tooltip
+  const tw = 280, th = 130;
+  let top, left;
+
+  if (step.position === 'right') {
+    top  = rect.top + rect.height / 2 - th / 2;
+    left = rect.right + 16;
+  } else if (step.position === 'top') {
+    top  = rect.top - th - 16;
+    left = rect.left + rect.width / 2 - tw / 2;
+  } else {
+    top  = rect.bottom + 16;
+    left = rect.left + rect.width / 2 - tw / 2;
+  }
+
+  // clamp to viewport
+  top  = Math.max(8, Math.min(top,  window.innerHeight - th - 8));
+  left = Math.max(8, Math.min(left, window.innerWidth  - tw - 8));
+
+  tourTooltip.style.top  = `${top}px`;
+  tourTooltip.style.left = `${left}px`;
+}
+
+function nextTourStep() {
+  tourStep++;
+  if (tourStep >= TOUR_STEPS.length) { endTour(); return; }
+  showTourStep();
+}
+
+function endTour() {
+  tourOverlay?.remove();
+  tourHighlight?.remove();
+  tourTooltip?.remove();
+  tourOverlay = tourHighlight = tourTooltip = null;
+}
+
+// start tour after short delay on first visit
+setTimeout(startTour, 1000);
 </script>
 </body>
 </html>
