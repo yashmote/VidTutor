@@ -172,6 +172,20 @@
   .detected-lang { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--accent2); letter-spacing: 0.08em; min-height: 16px; }
   .exit-voice-btn { position: absolute; top: 24px; right: 24px; background: none; border: 1px solid var(--border); color: var(--muted); font-family: 'DM Mono', monospace; font-size: 0.7rem; padding: 8px 14px; border-radius: 6px; cursor: pointer; letter-spacing: 0.05em; }
   .exit-voice-btn:hover { color: var(--text); border-color: var(--muted); }
+
+  .interrupt-btn {
+  background: none;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  transition: all 0.15s;
+}
+.interrupt-btn:hover { background: #2e1f00; }
 </style>
 </head>
 <body>
@@ -268,6 +282,7 @@
 <!-- ── VOICE MODE OVERLAY ── -->
 <div id="voice-mode-overlay">
   <button class="exit-voice-btn" id="exit-voice-btn">✕ EXIT VOICE MODE</button>
+  <button class="interrupt-btn" id="interrupt-btn" style="display:none;">⏹ STOP & LISTEN</button>
   <div class="detected-lang" id="detected-lang"></div>
   <div class="voice-orb" id="voice-orb">🎙</div>
   <div class="voice-status" id="voice-status">STARTING...</div>
@@ -542,6 +557,7 @@
   let voiceLoop    = false;
   let voiceAborted = false;
   let currentAudio = null;
+  const interruptBtn = document.getElementById('interrupt-btn');
 
   const LANG_CODE_TO_NAME = {
     'en-IN': 'English', 'hi-IN': 'Hindi',    'bn-IN': 'Bengali',
@@ -590,6 +606,7 @@
       setVoiceState('listening', '🎙', 'LISTENING...');
       voiceTranscript.textContent = '';
       voiceAnswer.textContent     = '';
+      detectedLang.textContent    = ''; 
 
       let stream, audioCtx;
       try {
@@ -718,6 +735,7 @@
     voiceOrb.className      = `voice-orb ${state}`;
     voiceOrb.textContent    = emoji;
     voiceStatus.textContent = status;
+    interruptBtn.style.display = state === 'speaking' ? 'block' : 'none';
   }
 
   function playAudio(b64) {
@@ -768,6 +786,14 @@
     micBtn.disabled     = on;
     sendBtn.textContent = on ? '...' : 'SEND';
   }
+  interruptBtn.addEventListener('click', () => {
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio.dispatchEvent(new Event('ended')); // triggers onended → resolves playAudio promise
+    currentAudio = null;
+  }
+  interruptBtn.style.display = 'none';
+});
 </script>
 </body>
 </html>

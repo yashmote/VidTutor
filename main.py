@@ -219,23 +219,18 @@ def stt(req: STTRequest):
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
         f.write(audio_bytes)
         tmp_path = f.name
-
     try:
-        with open(tmp_path, "rb") as audio_file:
-            response = sarvam_client.speech_to_text.transcribe(
-                file=audio_file,
-                model="saaras:v3",
-                mode="transcribe",
-            )
+        response = sarvam_client.speech_to_text.transcribe(
+            file=open(tmp_path, "rb"),
+            model="saaras:v3",
+            mode="transcribe",
+        )
         return {
             "transcript": response.transcript,
             "language_code": response.language_code or "en-IN"
         }
     finally:
-        try:
-            os.unlink(tmp_path)
-        except Exception:
-            pass  # ignore if Windows still holds the handle
+        os.unlink(tmp_path)
 
 @app.post("/tts")
 def tts(req: TTSRequest):
