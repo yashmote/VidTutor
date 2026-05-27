@@ -771,7 +771,7 @@
         appendBubble('user', transcript);
         appendBubble('bot', answer);
 
-        setVoiceState('speaking', '🔊', 'SPEAKING...');
+        setVoiceState('thinking', '💭', 'THINKING...');
         try {
           const res = await fetch('/tts', {
             method: 'POST',
@@ -780,11 +780,12 @@
           });
           const data = await res.json();
           if (data.audio_b64 && !voiceAborted) {
-            voiceAnswer.textContent = answer;  // show text exactly when audio is ready
+            voiceAnswer.textContent = answer;
+            setVoiceState('speaking', '🔊', 'SPEAKING...');
             await playAudio(data.audio_b64);
           }
         } catch {
-          voiceAnswer.textContent = answer;  // show text even if TTS fails
+          voiceAnswer.textContent = answer;
         }
 
         resolve();
