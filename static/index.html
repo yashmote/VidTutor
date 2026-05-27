@@ -440,7 +440,7 @@
   questionEl.addEventListener('keydown', e => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   });
-  sendBtn.addEventListener('click', sendMessage);
+  sendBtn.addEventListener('click', () => sendMessage());
   clearBtn.addEventListener('click', () => {
     history = [];
     voiceSessionStarted = false;
