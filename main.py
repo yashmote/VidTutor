@@ -125,13 +125,12 @@ def retrieve(query: str) -> str:
 def ask_sarvam(question: str, context: str, language: str, history: list) -> str:
     system = SYSTEM_PROMPT.format(context=context, language=language)
     messages = [{"role": "system", "content": system}]
-    for msg in history:
+    for msg in history[-6:]:  # keep only last 3 exchanges
         role    = msg.get("role", "user")
         content = msg.get("content", "")
         if content:
             messages.append({"role": role, "content": content})
     messages.append({"role": "user", "content": f"{question}\n\n[Respond in {language} only]"})
-
     with httpx.Client(timeout=60.0) as client:
         response = client.post(
             "https://api.sarvam.ai/v1/chat/completions",
@@ -200,6 +199,8 @@ def chat(req: ChatRequest):
     context = retrieve(req.question)
     print(f"[RAG]        Retrieved {len(context)} chars from index")
     answer = ask_sarvam(req.question, context, req.language, req.history)
+    if not answer.strip():
+        answer = "I'm not sure how to respond to that based on the video."
     print(f"[SARVAM LLM] {answer[:100]}...")
     audio_b64 = None
     if req.speak and SARVAM_API_KEY:
@@ -220,11 +221,12 @@ def stt(req: STTRequest):
         f.write(audio_bytes)
         tmp_path = f.name
     try:
-        response = sarvam_client.speech_to_text.transcribe(
-            file=open(tmp_path, "rb"),
-            model="saaras:v3",
-            mode="transcribe",
-        )
+        with open(tmp_path, "rb") as audio_file:
+            response = sarvam_client.speech_to_text.transcribe(
+                file=audio_file,
+                model="saaras:v3",
+                mode="transcribe",
+    )
         return {
             "transcript": response.transcript,
             "language_code": response.language_code or "en-IN"

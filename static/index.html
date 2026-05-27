@@ -686,7 +686,7 @@
 
         if (voiceAborted) { resolve(); return; }
 
-        voiceAnswer.textContent = answer;
+        voiceAnswer.textContent = '';
 
         // append to main chat with divider on first voice message
         emptyEl.style.display = 'none';
@@ -708,8 +708,13 @@
             body: JSON.stringify({ text: answer, lang_code: langCode })
           });
           const data = await res.json();
-          if (data.audio_b64 && !voiceAborted) await playAudio(data.audio_b64);
-        } catch { /* continue */ }
+          if (data.audio_b64 && !voiceAborted) {
+            voiceAnswer.textContent = answer;  // show text exactly when audio is ready
+            await playAudio(data.audio_b64);
+          }
+        } catch {
+          voiceAnswer.textContent = answer;  // show text even if TTS fails
+        }
 
         resolve();
       };
